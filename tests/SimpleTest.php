@@ -10,7 +10,6 @@
  * @license  OSL-3.0 http://opensource.org/licenses/osl-3.0
  * @link     https://github.com/cweiske/jsonmapper
  */
-require_once 'JsonMapperTest/Simple.php';
 
 /**
  * Unit tests for JsonMapper's simple type handling
@@ -246,6 +245,20 @@ class SimpleTest extends \PHPUnit\Framework\TestCase
             'blubb', $sn->internalData['hyphen-value-setter']
         );
 
+    }
+
+    /**
+     * Variable has no docblock, and has different caSiNg than object property
+     */
+    public function testMapCaseMismatchNoDocblock()
+    {
+        $jm = new JsonMapper();
+        $sn = $jm->map(
+            json_decode('{"noDocBlock":"blubb"}'),
+            new JsonMapperTest_Simple()
+        );
+        $this->assertIsString($sn->nodocblock);
+        $this->assertEquals('blubb', $sn->nodocblock);
     }
 }
 ?>
