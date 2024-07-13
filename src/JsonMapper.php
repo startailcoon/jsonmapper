@@ -301,7 +301,9 @@ class JsonMapper
                 $array = array();
                 $subtype = $type;
             } else {
-                if (is_a($type, 'ArrayAccess', true)) {
+                if (is_a($type, 'ArrayAccess', true)
+                    && is_a($type, 'Traversable', true)
+                ) {
                     $array = $this->createInstance($type, false, $jvalue);
                 }
             }
@@ -465,6 +467,13 @@ class JsonMapper
                     if ($this->isSimpleType($class)) {
                         settype($jvalue, $class);
                         $array[$key] = $jvalue;
+                    } else if ($this->bStrictObjectTypeChecking) {
+                        throw new JsonMapper_Exception(
+                            'JSON property'
+                                . ' "' . ($parent_key ? $parent_key : '?') . '"'
+                                . ' (array key "' . $key . '") must be an object, '
+                                . gettype($jvalue) . ' given'
+                        );
                     } else {
                         $array[$key] = $this->createInstance(
                             $class, true, $jvalue
@@ -855,7 +864,8 @@ class JsonMapper
      */
     protected function isNullable($type)
     {
-        return stripos('|' . $type . '|', '|null|') !== false;
+        return stripos('|' . $type . '|', '|null|') !== false
+            || strpos('|' . $type, '|?') !== false;
     }
 
     /**
@@ -871,7 +881,7 @@ class JsonMapper
             return null;
         }
         return substr(
-            str_ireplace('|null|', '|', '|' . $type . '|'),
+            str_ireplace(['|null|', '|?'], '|', '|' . $type . '|'),
             1, -1
         );
     }
